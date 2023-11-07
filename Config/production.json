@@ -1,0 +1,5 @@
+{
+    "url" : "E_COM_PROJECT.com",
+    "mysql" : "Mysql://root:@",
+    "port" : "3001"
+}

@@ -1,0 +1,70 @@
+let express=require('express');
+let router=express.Router();
+let user=require('./Controller/UserController');
+let product=require('./Controller/ProductController');
+let auth = require('./Controller/auth_controller');
+let {authM} = require('./Middleware/auth_Middleware');
+let {mail} = require('./Helpers/mailer');
+let otpGenerator = require ('otp-generator');
+let Dashboard = require ('./Controller/Dashboard');
+
+
+router.get('/',auth.index);
+router.get ('/login',auth.index);
+router.post('/product',product.createUser);
+router.post('/user',user.createUser); 
+router.post('/registerU', auth.userRegister);
+router.post('/login', auth.loginPage);
+router.get('/zaki',authM('user'),(req,res)=>{ return res.send(req.userData)});
+router.get('/product',product.veiwAll);
+
+router.get('/Dashboard',authM('user'),Dashboard.Dashboard);
+//register routes
+router.get('/registerU',auth.register_ui);
+
+//login, register routes
+router.get('/jquery',product.register_Login)
+//redirecr page
+router.get('/redirect',auth.index)
+
+
+// router.get('/example',(req,res)=>{
+//     if(req.session.view){
+//         req.session.view +=1
+//     }
+//     else
+//     {
+//         req.session.view = 1
+//     }
+//     return res.send({view:req.session.view});
+// });
+router.get('/example',(req,res)=>{
+    let user = {
+        Name:'zaki',
+        Contact:'7896541236',
+        Email:'mdzaki7352@gmail.com'
+    }
+    return res.render('test',user);
+});
+
+//for email and otp
+router.get('/Sendmail',async(req,res)=>{
+    let otp = otpGenerator.generate(4,{upperCaseAlphabets:false,specialChars:false,lowerCaseAlphabets:false});
+    let mailoption = {
+        from : "mdzaki7352@gmail.com",
+        to : req.body.email,
+        subject : "testing purpose",
+        text : `this is your otp :- ${otp}`
+    }
+    let sendMail = await mail(mailoption).catch ((err)=>{
+        return {error:err}
+    })
+    console.log(sendMail)
+    if (!sendMail || (sendMail && sendMail.error)){
+        return res.send ("Mail is not sent please try again")
+    }
+    return res.send(`Mail is send to ${req.body.email}`)
+})
+
+
+module.exports = {router}
